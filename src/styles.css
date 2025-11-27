@@ -70,8 +70,10 @@ body {
 .app-main {
   flex: 1;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  gap: 16px;
   padding: 12px 16px 16px;
+  align-items: stretch;
 }
 
 .app-map-section {
@@ -168,7 +170,7 @@ body {
   color: var(--text-main);
 }
 .toolbar-logo-img {
-  height: 40px;
+  height: 48px;
   max-height: 100%;
   width: auto;
   object-fit: contain;
@@ -499,12 +501,18 @@ body {
 /* המעטפת של ה־AI – תמיד יושבת בצד ימין למטה */
 .ai-command-shell {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
-  z-index: 1200;
+  bottom: clamp(16px, 3vw, 28px);
+  right: clamp(16px, 3vw, 28px);
+  z-index: 1400;
   display: flex;
   justify-content: flex-end;
   align-items: center;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.ai-command-shell .ai-orb {
+  pointer-events: auto;
 }
 
 /* מצב פתוח – שורת כתיבה */
@@ -530,10 +538,10 @@ body {
 
 /* כפתור צף – מצב סגור: רק עיגול, בפינה הימנית התחתונה */
 .ai-orb-fab {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  z-index: 1400;
+  position: static;
+  bottom: auto;
+  right: auto;
+  z-index: 1;
 }
 
 /* orb בסיסי */
@@ -542,31 +550,36 @@ body {
   border: none;
   outline: none;
   cursor: pointer;
-  width: 56px;
-  height: 56px;
-  border-radius: 999px;
-  background: radial-gradient(circle at 30% 20%, #e0f2fe 0, #bfdbfe 30%, #4f46e5 80%);
+  width: 80px;
+  height: 80px;
+  border-radius: 1000px;
+  background:
+    radial-gradient(circle at 32% 24%, #ffffff 0, #f7f9ff 38%, #e7edff 62%, #d4e0ff 85%),
+    #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
   overflow: hidden;
-  box-shadow: 0 12px 25px rgba(15, 23, 42, 0.35);
+  box-shadow: 0 14px 32px rgba(37, 99, 235, 0.28), 0 8px 20px rgba(15, 23, 42, 0.18);
+  transition: transform 150ms ease-out, box-shadow 150ms ease-out, filter 150ms ease-out;
+  backdrop-filter: blur(6px);
 }
 
-.ai-orb img {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-  position: relative;
-  z-index: 1;
+.ai-orb:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 18px 36px rgba(37, 99, 235, 0.32), 0 10px 24px rgba(15, 23, 42, 0.2);
+}
+
+.ai-orb:focus-visible {
+  outline: 2px solid rgba(37, 99, 235, 0.45);
+  outline-offset: 4px;
 }
 
 .ai-orb-glow {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.9), transparent 55%);
+  background: radial-gradient(circle at 22% 12%, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.22) 52%);
   opacity: 0.9;
 }
 
@@ -612,16 +625,18 @@ body {
 
 /* האורב בבר */
 .ai-command-bar-inner .ai-orb {
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   box-shadow: none;
 }
 
 .ai-orb-icon {
-  width: 28px;
-  height: 28px;
+  width: 54px;
+  height: 54px;
   border-radius: 50%;
   object-fit: cover;
+  background: transparent;
+  mix-blend-mode: multiply;
   position: relative;
   z-index: 1;
 }
@@ -794,26 +809,18 @@ body {
 /* ----------------------------------------- */
 
 .side-panel {
-  position: fixed;
-  top: 80px;
-  right: 0;
-  bottom: 24px;
-  width: 340px;
-  z-index: 1150;
-  padding: 0 18px 0 10px;
-  pointer-events: none;
-}
-
-.side-panel--right > * {
-  pointer-events: auto;
-}
-
-.side-panel-header,
-.side-panel-body {
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.25);
-  border: 1px solid rgba(148, 163, 184, 0.28);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #f9fafb;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+  padding: 8px;
+  clip-path: inset(0 0 0 0);
 }
 
 .side-panel-header {
@@ -823,38 +830,16 @@ body {
   justify-content: space-between;
   gap: 10px;
   border-bottom: 1px solid rgba(229, 231, 235, 0.8);
-}
-
-.side-panel-header h2 {
-  margin: 0;
-  font-size: 1rem;
-}
-
-.side-panel-header p {
-  margin: 3px 0 0;
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
-
-.side-panel-close {
-  border: none;
   background: transparent;
-  cursor: pointer;
-  font-size: 1.1rem;
-  color: var(--text-muted);
-  border-radius: 999px;
-  padding: 4px;
-}
-
-.side-panel-close:hover {
-  background: rgba(148, 163, 184, 0.18);
 }
 
 .side-panel-body {
-  margin-top: 8px;
+  margin-top: 0;
   padding: 10px 10px 12px;
-  max-height: calc(100% - 70px);
+  flex: 1;
+  min-height: 0;
   overflow: auto;
+  background: transparent;
 }
 
 .side-panel-section {
@@ -875,29 +860,32 @@ body {
 
 .side-panel-row {
   width: 100%;
-  border: none;
-  background: transparent;
+  border: 1px solid rgba(229, 231, 235, 0.9);
+  background: #ffffff;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 7px 8px;
+  padding: 10px;
   border-radius: 12px;
   cursor: pointer;
   transition:
     background 140ms ease-out,
     transform 120ms ease-out,
-    box-shadow 140ms ease-out;
+    box-shadow 140ms ease-out,
+    border-color 140ms ease-out;
 }
 
 .side-panel-row:hover {
-  background: #f3f4ff;
+  background: #f8fafc;
   transform: translateY(-1px);
-  box-shadow: 0 10px 22px rgba(148, 163, 184, 0.4);
+  box-shadow: 0 10px 22px rgba(148, 163, 184, 0.35);
+  border-color: rgba(148, 163, 184, 0.7);
 }
 
 .side-panel-row--active {
-  background: #e0ebff;
-  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.35);
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.22);
+  border-color: rgba(37, 99, 235, 0.7);
 }
 
 .side-panel-row-icon {
@@ -914,11 +902,12 @@ body {
 }
 
 .side-panel-row-label {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 600;
 }
 
 .side-panel-row-desc {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
 }
 
@@ -939,12 +928,208 @@ body {
   background: rgba(37, 99, 235, 0.9);
 }
 
+/* Close buttons - cleaner, borderless */
+.side-panel-close,
+.chat-panel__close {
+  border: none !important;
+  background: transparent !important;
+  cursor: pointer !important;
+  font-size: 1.1rem !important;
+  color: #9ca3af !important;
+  border-radius: 50% !important;
+  padding: 4px !important;
+  transition: color 120ms ease, background 120ms ease, transform 120ms ease !important;
+}
+
+.side-panel-close:hover,
+.chat-panel__close:hover {
+  color: #6b7280 !important;
+  background: rgba(148, 163, 184, 0.18) !important;
+  transform: translateY(-1px);
+}
+
+/* Chat panel – professional ChatGPT look */
+.chat-panel__header {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(229, 231, 235, 0.9);
+  background: #ffffff;
+}
+
+.chat-panel__body {
+  flex: 1;
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  background: linear-gradient(180deg, #fbfdff, #f5f7fb);
+}
+
+.chat-bubble {
+  max-width: 92%;
+  border-radius: 16px;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.14);
+  border: 1px solid rgba(229, 231, 235, 0.7);
+}
+
+.chat-bubble--user {
+  align-self: flex-end;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #f8fafc;
+  border-color: transparent;
+}
+
+.chat-bubble--assistant {
+  align-self: flex-start;
+  background: #ffffff;
+  color: var(--text-main);
+  border: 1px solid rgba(229, 231, 235, 0.7);
+}
+
+.chat-panel__input-row {
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px;
+  border-top: 1px solid rgba(229, 231, 235, 0.9);
+  background: #ffffff;
+}
+
+.chat-panel__input-row input {
+  flex: 1;
+  border-radius: 14px;
+  border: 1px solid rgba(229, 231, 235, 0.9);
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  background: #f8fafc;
+}
+
+.chat-panel__input-row .btn {
+  border-radius: 14px;
+}
+
 /* Chat sidebar branding */
 .chat-panel__logo {
   width: 36px;
   height: 36px;
   border-radius: 50%;
   object-fit: cover;
+}
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* topbar sits above main */
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  padding: 12px 16px 16px;
+  align-items: stretch;
+}
+
+/* map card */
+.app-map-section {
+  flex: 1 1 auto;
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background: #f9fafb;
+  overflow: hidden;
+  box-shadow: var(--shadow-soft);
+}
+
+/* when panel open, map a bit thinner, panel takes fixed width */
+.app-main--with-panel .app-map-section {
+  flex: 1 1 auto;
+}
+
+/* Final overrides for layout and cards */
+.app-main {
+  direction: ltr !important;
+}
+.app-map-section {
+  direction: rtl !important;
+}
+.toolbar-logo-img {
+  height: 53px !important;
+  width: auto !important;
+  object-fit: contain !important;
+}
+.side-panel-card {
+  flex: 0 0 0 !important;
+  max-width: 0 !important;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(110%);
+  transition:
+    flex-basis 220ms ease,
+    max-width 220ms ease,
+    opacity 180ms ease,
+    transform 220ms ease;
+  display: flex;
+}
+.side-panel-card--open {
+  flex: 0 0 360px !important;
+  max-width: 360px !important;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+}
+.side-panel-card--open .side-panel {
+  animation: side-panel-wipe 260ms ease-out;
+  transform-origin: right center;
+}
+.side-panel {
+  background: #ffffff !important;
+  border: 1px solid rgba(229, 231, 235, 0.9) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-soft) !important;
+  padding: 8px !important;
+  direction: rtl !important;
+  clip-path: inset(0 0 0 0);
+}
+.side-panel-row {
+  border: 1px solid rgba(229, 231, 235, 0.9) !important;
+  background: #ffffff !important;
+  padding: 10px !important;
+  direction: rtl !important;
+}
+.side-panel-row:hover {
+  background: #f8fafc !important;
+  box-shadow: 0 10px 22px rgba(148, 163, 184, 0.35) !important;
+  border-color: rgba(148, 163, 184, 0.7) !important;
+}
+.side-panel-row--active {
+  background: #ffffff !important;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.22) !important;
+  border-color: rgba(37, 99, 235, 0.7) !important;
+}
+.side-panel-row-label {
+  font-size: 0.95rem !important;
+  font-weight: 600 !important;
+  text-align: right !important;
+}
+.side-panel-row-desc {
+  font-size: 0.8rem !important;
+  text-align: right !important;
+}
+@keyframes side-panel-wipe {
+  from {
+    clip-path: inset(0 0 0 100%);
+    opacity: 0;
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+  }
 }
 .app-shell {
   display: flex;
@@ -993,17 +1178,19 @@ body {
 }
 
 .toolbar-logo-img {
-  height: 32px;
+  height: 48px;
   width: auto;
   border-radius: 0;
   object-fit: contain;
 }
 
 .ai-orb img {
-  width: 28px;
-  height: 28px;
+  width: 54px;
+  height: 54px;
   border-radius: 50%;
   object-fit: cover;
+  background: transparent;
+  mix-blend-mode: multiply;
   position: relative;
   z-index: 1;
 }

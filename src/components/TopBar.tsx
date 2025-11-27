@@ -39,7 +39,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   return (
     <header className="toolbar-root topbar-root">
       <div className="toolbar-group toolbar-brand">
-        <div className="toolbar-logo">GOVMAP STUDIO</div>
+        <img src="/logos/main_logo.png" alt="GovMap Studio" className="toolbar-logo-img" />
       </div>
 
       <div className={`topbar-search ${searchOpen ? "topbar-search--open" : "topbar-search--closed"}`}>

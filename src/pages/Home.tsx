@@ -5,6 +5,7 @@ import { GovmapContainer } from "../components/GovmapContainer";
 import { TopBar } from "../components/TopBar";
 import { LayerPanel } from "../components/LayerPanel";
 import { FeaturePanel } from "../components/FeaturePanel";
+import ChatSidebar from "../components/ChatSidebar";
 
 type PanelMode = "layers" | "features" | null;
 
@@ -26,9 +27,16 @@ interface HomeProps {
   mapContainerId: string;
   baseLayers: LayerOption[];
   chatOpen?: boolean;
+  onChatClose?: () => void;
 }
 
-export const Home: React.FC<HomeProps> = ({ govmap, mapContainerId, baseLayers, chatOpen }) => {
+export const Home: React.FC<HomeProps> = ({
+  govmap,
+  mapContainerId,
+  baseLayers,
+  chatOpen,
+  onChatClose,
+}) => {
   const { actions } = govmap;
 
   const [searchOpen, setSearchOpen] = useState(false);
@@ -104,9 +112,16 @@ export const Home: React.FC<HomeProps> = ({ govmap, mapContainerId, baseLayers, 
     }
   ];
 
-  const isLayersOpen = panelMode === "layers";
-  const isFeaturesOpen = panelMode === "features";
-  const isPanelOpen = isLayersOpen || isFeaturesOpen;
+  const isLayersOpen = !chatOpen && panelMode === "layers";
+  const isFeaturesOpen = !chatOpen && panelMode === "features";
+  const isChatOpen = Boolean(chatOpen);
+  const isPanelOpen = isLayersOpen || isFeaturesOpen || isChatOpen;
+
+  useEffect(() => {
+    if (chatOpen && panelMode !== null) {
+      setPanelMode(null);
+    }
+  }, [chatOpen, panelMode]);
 
   return (
     <div className="app-shell">
@@ -121,6 +136,7 @@ export const Home: React.FC<HomeProps> = ({ govmap, mapContainerId, baseLayers, 
         }}
         panelMode={panelMode}
         onPanelChange={(mode) => {
+          if (mode !== null && onChatClose) onChatClose();
           setPanelMode(mode);
           if (mode !== null) setSearchOpen(false);
         }}
@@ -155,6 +171,12 @@ export const Home: React.FC<HomeProps> = ({ govmap, mapContainerId, baseLayers, 
               features={features}
               onClose={() => setPanelMode(null)}
             />
+          </div>
+        )}
+
+        {isChatOpen && (
+          <div className="side-panel-card side-panel-card--open">
+            <ChatSidebar isOpen onClose={onChatClose ?? (() => undefined)} />
           </div>
         )}
       </main>
