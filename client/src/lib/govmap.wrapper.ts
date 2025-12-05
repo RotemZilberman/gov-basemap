@@ -186,7 +186,7 @@ export async function applyLayerFilter(
     govmap.filterLayers(
       {
         layerName: layerId,
-        whereClause: where.length > 0 ? where : undefined,
+        whereClause: where.length > 0 ? where : "(1=1)",
         isZoomToExtent: false
       },
       mapDivId
@@ -197,18 +197,43 @@ export async function applyLayerFilter(
 }
 
 // ניתוח מרחבי בסיסי (חיתוך מול WKT שסופק)
-export async function runSpatialAnalysis(layerId: string, wkt?: string): Promise<unknown> {
+export async function runSpatialAnalysis(
+  layerId: string,
+  wkt?: string,
+  mapDivId?: string
+): Promise<unknown> {
   const govmap = await loadGovmap();
+  const cleanWkt = wkt?.trim();
+
+  if (!cleanWkt) {
+    throw new Error("WKT לא סופק לניתוח מרחבי");
+  }
 
   if (typeof govmap.spatialQuery === "function") {
     return govmap.spatialQuery({
       layerName: layerId,
-      wkt
+      wkt: cleanWkt
     });
   }
 
   if (typeof govmap.getSpatialQuery === "function") {
-    return govmap.getSpatialQuery(layerId, wkt);
+    return govmap.getSpatialQuery(layerId, cleanWkt);
+  }
+
+  if (typeof govmap.selectFeaturesOnMap === "function") {
+    return govmap.selectFeaturesOnMap({
+      selectOnMap: false,
+      drawType: govmap.drawType?.Polygon,
+      filterLayer: true,
+      isZoomToExtent: false,
+      layers: [layerId],
+      wkt: cleanWkt,
+      mapDivId
+    } as any);
+  }
+
+  if (typeof govmap.intersectFeatures === "function") {
+    return govmap.intersectFeatures({ layers: [layerId], wkt: cleanWkt }, mapDivId);
   }
 
   console.warn("GovMap API לניתוח מרחבי לא זמין");

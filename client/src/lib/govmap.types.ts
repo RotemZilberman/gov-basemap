@@ -122,7 +122,7 @@ export interface GovmapApi {
   intersectFeatures?: (params: GovmapIntersectParams, mapDivId?: string) => Promise<unknown>;
   searchInLayer?: (params: Record<string, unknown>, mapDivId?: string) => Promise<unknown> | unknown;
   spatialQuery?: (params: unknown) => unknown;
-  getSpatialQuery?: (layerId: string, wkt?: string) => unknown;
+  getSpatialQuery?: (layerId: string, wkt?: string, mapDivId?: string) => unknown;
   selectFeaturesOnMap?: (params: {
     continous?: boolean;
     drawType?: unknown;
@@ -132,6 +132,8 @@ export interface GovmapApi {
     returnFields?: Record<string, string[]>;
     selectOnMap?: boolean;
     whereClause?: Record<string, string>;
+    wkt?: string;
+    mapDivId?: string;
   }) => Promise<unknown> | unknown;
 }
 
