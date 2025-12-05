@@ -88,14 +88,21 @@ export async function zoomOut(mapDivId?: string): Promise<void> {
   govmap.zoomOut(mapDivId);
 }
 
-export async function geocode(keyword: string, fullResult = false): Promise<GeocodeResult> {
+export async function geocode(
+  keyword: string,
+  fullResult = false,
+  mapDivId?: string
+): Promise<GeocodeResult> {
   const govmap = await loadGovmap();
   const type = fullResult ? govmap.geocodeType.FullResult : govmap.geocodeType.AccuracyOnly;
 
-  return govmap.geocode({
-    keyword,
-    type
-  });
+  return govmap.geocode(
+    {
+      keyword,
+      type
+    },
+    mapDivId
+  );
 }
 
 export async function zoomToXY(
@@ -132,10 +139,11 @@ export async function closeExport(mapDivId?: string): Promise<void> {
 // שכבות
 export async function setVisibleLayers(
   layersOn: string[],
-  layersOff: string[] = []
+  layersOff: string[] = [],
+  mapDivId?: string
 ): Promise<void> {
   const govmap = await loadGovmap();
-  govmap.setVisibleLayers(layersOn, layersOff);
+  govmap.setVisibleLayers(layersOn, layersOff, mapDivId);
 }
 
 // מדידות
@@ -150,39 +158,42 @@ export async function closeMeasure(mapDivId?: string): Promise<void> {
 }
 
 // שקיפות שכבה
-// שקיפות שכבה
-export async function setLayerOpacity(layerId: string, opacity: number): Promise<void> {
+export async function setLayerOpacity(
+  layerId: string,
+  opacity: number,
+  mapDivId?: string
+): Promise<void> {
   const govmap = await loadGovmap();
   const safeOpacity = Math.max(0, Math.min(100, opacity));
 
   if (typeof govmap.setLayerOpacity === "function") {
-    govmap.setLayerOpacity(layerId, safeOpacity);
-    return;
+    govmap.setLayerOpacity({ layerName: layerId, opacity: safeOpacity }, mapDivId);
+  } else {
+    console.warn("GovMap API לשקיפות שכבה לא זמין");
   }
-
-  if (typeof govmap.setLayersOpacity === "function") {
-    govmap.setLayersOpacity([{ layerName: layerId, opacity: safeOpacity }]);
-    return;
-  }
-
-  console.warn("GovMap API לשקיפות שכבה לא זמין");
 }
 
 // סינון שכבה
-export async function applyLayerFilter(layerId: string, filter: string): Promise<void> {
+export async function applyLayerFilter(
+  layerId: string,
+  filter: string,
+  mapDivId?: string
+): Promise<void> {
   const govmap = await loadGovmap();
-
-  if (typeof govmap.setLayerFilters === "function") {
-    govmap.setLayerFilters([{ layerName: layerId, where: filter }]);
-    return;
-  }
+  const where = filter?.trim() ?? "";
 
   if (typeof govmap.filterLayers === "function") {
-    govmap.filterLayers([{ layerName: layerId, whereClause: filter }]);
-    return;
+    govmap.filterLayers(
+      {
+        layerName: layerId,
+        whereClause: where.length > 0 ? where : undefined,
+        isZoomToExtent: false
+      },
+      mapDivId
+    );
+  } else {
+    console.warn("GovMap API לסינון שכבות לא זמין");
   }
-
-  console.warn("GovMap API לסינון שכבות לא זמין");
 }
 
 // ניתוח מרחבי בסיסי (חיתוך מול WKT שסופק)
@@ -226,4 +237,43 @@ export async function zoomLayerExtent(layerId: string): Promise<void> {
   // you can keep it here, but it's probably not needed.
   console.warn("filterLayers לא זמין, אין אפשרות לבצע זום לשכבה");
   throw new Error("GovMap API filterLayers לא זמין לזום לשכבה");
+}
+
+export async function searchAndLocate(
+  params: { keyword: string; locateType?: number; maxResults?: number },
+  mapDivId?: string
+): Promise<unknown> {
+  const govmap = await loadGovmap();
+
+  if (typeof govmap.searchAndLocate !== "function") {
+    throw new Error("GovMap API searchAndLocate לא קיים");
+  }
+
+  return govmap.searchAndLocate(params, mapDivId);
+}
+
+export async function intersectFeatures(
+  params: { layers: string[]; whereClause?: Record<string, string>; wkt?: string },
+  mapDivId?: string
+): Promise<unknown> {
+  const govmap = await loadGovmap();
+
+  if (typeof govmap.intersectFeatures !== "function") {
+    throw new Error("GovMap API intersectFeatures לא קיים");
+  }
+
+  return govmap.intersectFeatures(params, mapDivId);
+}
+
+export async function searchInLayer(
+  params: Record<string, unknown>,
+  mapDivId?: string
+): Promise<unknown> {
+  const govmap = await loadGovmap();
+
+  if (typeof govmap.searchInLayer !== "function") {
+    throw new Error("GovMap API searchInLayer לא קיים");
+  }
+
+  return govmap.searchInLayer(params, mapDivId);
 }

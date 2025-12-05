@@ -19,14 +19,20 @@ interface LayerPanelProps {
   groups: LayerGroup[];
   activeLayerIds: string[];
   onToggleLayer: (id: string) => void;
+  onZoomLayer: (id: string) => void;
+  onOpenLayerOptions: (id: string, mode: LayerOptionMode) => void;
   onClose: () => void;
 }
+
+export type LayerOptionMode = "about" | "opacity" | "analysis" | "filter";
 
 export const LayerPanel: React.FC<LayerPanelProps> = ({
   open,
   groups,
   activeLayerIds,
   onToggleLayer,
+  onZoomLayer,
+  onOpenLayerOptions,
   onClose
 }) => {
   if (!open) return null;
@@ -55,12 +61,30 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
               {group.layers.map((layer) => {
                 const active = activeLayerIds.includes(layer.id);
                 return (
-                  <li key={layer.id}>
+                  <li key={layer.id} className="layer-row-shell">
+                    <div className="layer-row-actions">
+                      <button
+                        type="button"
+                        className="layer-row-menu-btn"
+                        aria-label="זום לשכבה"
+                        onClick={() => onZoomLayer(layer.id)}
+                        title="זום לשכבה"
+                      >
+                        📍
+                      </button>
+                      <button
+                        type="button"
+                        className="layer-row-menu-btn"
+                        aria-label="אודות שכבה"
+                        onClick={() => onOpenLayerOptions(layer.id, "about")}
+                        title="אודות שכבה"
+                      >
+                        ⋯
+                      </button>
+                    </div>
                     <button
                       type="button"
-                      className={`side-panel-row ${
-                        active ? "side-panel-row--active" : ""
-                      }`}
+                      className={`side-panel-row ${active ? "side-panel-row--active" : ""}`}
                       onClick={() => onToggleLayer(layer.id)}
                     >
                       <span className="side-panel-row-icon">
@@ -75,11 +99,8 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
                         )}
                       </span>
                       <span className="side-panel-row-toggle">
-                        <span
-                          className={`toggle-dot ${
-                            active ? "toggle-dot--on" : ""
-                          }`}
-                        />
+                        <span className={`toggle-dot ${active ? "toggle-dot--on" : ""}`} />
+                        <span className="layer-row-brand">GM</span>
                       </span>
                     </button>
                   </li>

@@ -6,8 +6,20 @@ import { TopBar } from "../components/TopBar";
 import { LayerPanel } from "../components/LayerPanel";
 import { FeaturePanel } from "../components/FeaturePanel";
 import ChatSidebar from "../components/ChatSidebar";
+import { LayerOptionsPanel } from "../components/LayerOptionsPanel";
+import type { LayerOptionMode } from "../components/LayerPanel";
 
 type PanelMode = "layers" | "features" | null;
+
+export type LayerFieldType = "text" | "number" | "enum" | "date";
+
+export interface LayerFieldMeta {
+  name: string;
+  type: LayerFieldType;
+  options?: string[];
+  min?: number;
+  max?: number;
+}
 
 interface LayerOption {
   id: string;
@@ -15,6 +27,8 @@ interface LayerOption {
   description?: string;
   icon?: string;
   groupId: string;
+  fields?: LayerFieldMeta[];
+  zoomCenter?: { x: number; y: number; level?: number };
 }
 
 interface LayerGroupDef {
@@ -28,6 +42,7 @@ interface HomeProps {
   baseLayers: LayerOption[];
   chatOpen?: boolean;
   onChatClose?: () => void;
+  mapCenter?: { x: number; y: number; level?: number };
 }
 
 export const Home: React.FC<HomeProps> = ({
@@ -36,6 +51,7 @@ export const Home: React.FC<HomeProps> = ({
   baseLayers,
   chatOpen,
   onChatClose,
+  mapCenter
 }) => {
   const { actions } = govmap;
 
@@ -44,6 +60,11 @@ export const Home: React.FC<HomeProps> = ({
   const [activeLayerIds, setActiveLayerIds] = useState<string[]>(
     baseLayers.map((l) => l.id)
   );
+  const [layerOptionsCtx, setLayerOptionsCtx] = useState<{
+    layerId: string;
+    mode: LayerOptionMode;
+  } | null>(null);
+  const [layerOpacity, setLayerOpacity] = useState<Record<string, number>>({});
 
   // הגדרת קבוצות שכבות
   const layerGroups: LayerGroupDef[] = [
@@ -115,7 +136,8 @@ export const Home: React.FC<HomeProps> = ({
   const isLayersOpen = !chatOpen && panelMode === "layers";
   const isFeaturesOpen = !chatOpen && panelMode === "features";
   const isChatOpen = Boolean(chatOpen);
-  const isPanelOpen = isLayersOpen || isFeaturesOpen || isChatOpen;
+  const isLayerOptionsOpen = Boolean(layerOptionsCtx);
+  const isPanelOpen = isLayersOpen || isFeaturesOpen || isChatOpen || isLayerOptionsOpen;
 
   useEffect(() => {
     if (chatOpen && panelMode !== null) {
@@ -139,6 +161,7 @@ export const Home: React.FC<HomeProps> = ({
           if (mode !== null && onChatClose) onChatClose();
           setPanelMode(mode);
           if (mode !== null) setSearchOpen(false);
+          if (mode !== null) setLayerOptionsCtx(null);
         }}
       />
 
@@ -159,6 +182,25 @@ export const Home: React.FC<HomeProps> = ({
               groups={groupedLayers}
               activeLayerIds={activeLayerIds}
               onToggleLayer={handleToggleLayer}
+              onZoomLayer={async (id) => {
+                const layer = baseLayers.find((l) => l.id === id);
+                try {
+                  await actions.zoomToLayerExtent(id);
+                  return;
+                } catch (err) {
+                  console.warn("Zoom to layer via API failed, falling back", err);
+                }
+                if (layer?.zoomCenter) {
+                  await actions.zoomTo(layer.zoomCenter.x, layer.zoomCenter.y, layer.zoomCenter.level);
+                } else if (mapCenter) {
+                  await actions.zoomTo(mapCenter.x, mapCenter.y, mapCenter.level ?? 8);
+                }
+              }}
+              onOpenLayerOptions={(id, mode) => {
+                setLayerOptionsCtx({ layerId: id, mode });
+                setPanelMode(null);
+                if (onChatClose) onChatClose();
+              }}
               onClose={() => setPanelMode(null)}
             />
           </div>
@@ -177,6 +219,56 @@ export const Home: React.FC<HomeProps> = ({
         {isChatOpen && (
           <div className="side-panel-card side-panel-card--open">
             <ChatSidebar isOpen onClose={onChatClose ?? (() => undefined)} />
+          </div>
+        )}
+
+        {isLayerOptionsOpen && layerOptionsCtx && (
+          <div className="side-panel-card side-panel-card--open">
+            <LayerOptionsPanel
+              open
+              layer={
+                baseLayers.find((l) => l.id === layerOptionsCtx.layerId) ?? {
+                  id: layerOptionsCtx.layerId,
+                  label: layerOptionsCtx.layerId
+                }
+              }
+              mode={layerOptionsCtx.mode}
+              opacity={layerOpacity[layerOptionsCtx.layerId] ?? 100}
+              onClose={() => setLayerOptionsCtx(null)}
+              onModeChange={(mode) => setLayerOptionsCtx({ layerId: layerOptionsCtx.layerId, mode })}
+              onOpacityChange={async (value) => {
+                const next = Math.min(100, Math.max(0, value));
+                setLayerOpacity((prev) => ({ ...prev, [layerOptionsCtx.layerId]: next }));
+                try {
+                  await actions.setLayerOpacity(layerOptionsCtx.layerId, next);
+                } catch (err) {
+                  console.error("שגיאה בעדכון שקיפות שכבה", err);
+                }
+              }}
+              onFilterApply={async (expr) => {
+                try {
+                  await actions.applyLayerFilter(layerOptionsCtx.layerId, expr);
+                } catch (err) {
+                  console.error("שגיאה בהפעלת סינון", err);
+                }
+              }}
+              onRunAnalysis={async (wkt) => {
+                try {
+                  await actions.runSpatialAnalysis(layerOptionsCtx.layerId, wkt ?? undefined);
+                } catch (err) {
+                  console.error("שגיאה בניתוח מרחבי", err);
+                }
+              }}
+              onRequestDrawArea={async () => {
+                try {
+                  const drawn = (await actions.drawPolygon()) as unknown as { wkt?: string } | null;
+                  return drawn?.wkt ?? null;
+                } catch (err) {
+                  console.error("ציור פוליגון נכשל", err);
+                  return null;
+                }
+              }}
+            />
           </div>
         )}
       </main>

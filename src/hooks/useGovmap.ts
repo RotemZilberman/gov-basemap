@@ -14,7 +14,11 @@ import {
   closeExport,
   setVisibleLayers,
   showMeasure,
-  closeMeasure
+  closeMeasure,
+  setLayerOpacity,
+  applyLayerFilter,
+  runSpatialAnalysis,
+  zoomLayerExtent
 } from "../lib/govmap.wrapper";
 
 export interface UseGovmapReturn {
@@ -33,6 +37,10 @@ export interface UseGovmapReturn {
     setVisibleLayers: (layersOn: string[], layersOff?: string[]) => Promise<void>;
     openMeasure: () => Promise<void>;
     closeMeasure: () => Promise<void>;
+    setLayerOpacity: (layerId: string, opacity: number) => Promise<void>;
+    applyLayerFilter: (layerId: string, filter: string) => Promise<void>;
+    runSpatialAnalysis: (layerId: string, wkt?: string) => Promise<unknown>;
+    zoomLayerExtent: (layerId: string) => Promise<void>;
   };
 }
 
@@ -100,6 +108,18 @@ export function useGovmap(containerId: string, options: GovmapCreateMapOptions):
       },
       async closeMeasure() {
         await closeMeasure(containerId);
+      },
+      async setLayerOpacity(layerId: string, opacity: number) {
+        await setLayerOpacity(layerId, opacity);
+      },
+      async applyLayerFilter(layerId: string, filter: string) {
+        await applyLayerFilter(layerId, filter);
+      },
+      async runSpatialAnalysis(layerId: string, wkt?: string) {
+        return runSpatialAnalysis(layerId, wkt);
+      },
+      async zoomLayerExtent(layerId: string) {
+        await zoomLayerExtent(layerId);
       }
     }),
     [containerId]

@@ -12,21 +12,27 @@ const BASE_LAYER_OPTIONS = [
     label: "תחנות דלק",
     description: "מיקומי תחנות דלק פעילות ברחבי הארץ.",
     icon: "⛽",
-    groupId: "infra"
+    groupId: "infra",
+    fields: ["STATION_NAME", "OPERATOR", "CITY", "STATUS", "ADDRESS"],
+    zoomCenter: { x: 187331, y: 575949, level: 9 }
   },
   {
     id: "PARCEL_ALL",
     label: "חלקות",
     description: "גבולות חלקות קדסטריאליות.",
     icon: "📐",
-    groupId: "parcels"
+    groupId: "parcels",
+    fields: ["GUSH_NUM", "PARCEL", "STATUS", "AREA_DUNAM", "OWNER_TYPE"],
+    zoomCenter: { x: 187331, y: 575949, level: 10 }
   },
   {
     id: "bus_stops",
     label: "תחנות אוטובוס",
     description: "תחנות אוטובוס ציבוריות.",
     icon: "🚌",
-    groupId: "transport"
+    groupId: "transport",
+    fields: ["STOP_NAME", "CITY_NAME", "ROUTE_TYPE", "ACCESSIBLE", "STATUS"],
+    zoomCenter: { x: 187331, y: 575949, level: 11 }
   }
 ];
 
@@ -52,7 +58,7 @@ const App: React.FC = () => {
     showXY: true,
     zoomButtons: true,
     bgButton: true,
-    layersMode: 1,
+    layersMode: 3,
     onLoad: () => console.log("GovMap נטען לתוך", MAP_CONTAINER_ID)
   });
 
@@ -63,6 +69,7 @@ const App: React.FC = () => {
         mapContainerId={MAP_CONTAINER_ID}
         baseLayers={BASE_LAYER_OPTIONS}
         chatOpen={aiOpen}
+        mapCenter={{ x: 187331, y: 575949, level: 8 }}
         onChatClose={() => setAiOpen(false)}
       />
       <AiCommandBar open={aiOpen} onToggle={setAiOpen} />

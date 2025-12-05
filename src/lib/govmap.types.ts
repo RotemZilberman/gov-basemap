@@ -70,6 +70,19 @@ export interface GovmapApi {
 
   drawType: Record<string, unknown>;
   geocodeType: Record<string, unknown>;
+
+  // Optional advanced APIs (guarded in wrapper)
+  setLayerOpacity?: (layerId: string, opacity: number) => void;
+  setLayersOpacity?: (layers: { layerName: string; opacity: number }[]) => void;
+  setLayerFilters?: (filters: { layerName: string; where?: string }[]) => void;
+  filterLayers?: (filters: { layerName: string; whereClause?: string }[]) => void;
+  spatialQuery?: (params: unknown) => unknown;
+  getSpatialQuery?: (layerId: string, wkt?: string) => unknown;
+  selectFeaturesOnMap?: (
+    layerName: string,
+    query?: unknown,
+    options?: { isZoomToExtent?: boolean }
+  ) => Promise<unknown> | unknown;
 }
 
 declare global {
