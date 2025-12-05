@@ -152,14 +152,12 @@ searchRouter.get("/google-geocode", async (req: Request, res: Response) => {
     const params = new URLSearchParams({
       input: searchText,
       key: apiKey,
-      language: "he",
-      components: "country:il"
+      types: "geocode"
     });
 
     const autocompleteResponse = await fetch(
       `https://maps.googleapis.com/maps/api/place/autocomplete/json?${params.toString()}`
     );
-
     if (!autocompleteResponse.ok) {
       return res.status(502).json({
         suggestions: [],

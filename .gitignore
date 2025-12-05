@@ -1,6 +1,8 @@
 client/node_modules
-server/node_modules
-server/.env
 client/.env
 client/dist
+client/.vscode/launch.json
+server/node_modules
+server/.env
 server/dist
+server/.vscode/launch.json
